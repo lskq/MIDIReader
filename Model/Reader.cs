@@ -7,13 +7,23 @@ namespace MIDIReader.Model;
 
 public static class Reader
 {
-    public static void PrintMIDI(MIDIFile midi)
+    public static void Print(MIDIFile midi)
     {
+        foreach (var line in MIDIToStringArray(midi))
+        {
+            Console.WriteLine(line);
+        }
+    }
+
+    public static String[] MIDIToStringArray(MIDIFile midi)
+    {
+        string[] array = [];
+
         for (int i = 0; i < midi.Chunks.Length; i++)
         {
             var chunk = midi.Chunks[i];
 
-            Console.WriteLine($"{i} {Definitions.ChunkTypeToString(chunk)}\n");
+            array = [.. array, $"{i} {Definitions.ChunkTypeToString(chunk)}", ""];
 
             if (chunk.GetType() == typeof(TrackChunk))
             {
@@ -27,32 +37,31 @@ public static class Reader
 
                     if (ev.GetType() == typeof(MIDIEvent))
                     {
-                        Console.WriteLine(eventCount + "MIDI Channel");
-                        PrintMIDIEvent((MIDIEvent)ev);
+                        array = [.. array, eventCount + "MIDI Channel", .. MIDIEventToStringArray((MIDIEvent)ev)];
                     }
                     else if (ev.GetType() == typeof(MetaEvent))
                     {
 
-                        Console.WriteLine(eventCount + "Meta");
-                        PrintMetaEvent((MetaEvent)ev);
+                        array = [.. array, eventCount + "Meta", .. MetaEventToStringArray((MetaEvent)ev)];
                     }
                     else if (ev.GetType() == typeof(SysexEvent))
                     {
-                        Console.WriteLine(eventCount + "Sysex");
-                        PrintSysexEvent((SysexEvent)ev);
+                        array = [.. array, eventCount + "Sysex", .. SysexEventToStringArray((SysexEvent)ev)];
                     }
                     else
                     {
-                        Console.WriteLine(eventCount + "Unrecognized");
+                        array = [.. array, eventCount + "Unrecognized"];
                     }
 
-                    Console.WriteLine();
+                    array = [.. array, ""];
                 }
             }
         }
+
+        return array;
     }
 
-    public static void PrintMIDIEvent(MIDIEvent midi)
+    public static string[] MIDIEventToStringArray(MIDIEvent midi)
     {
         string statusString = Definitions.MIDIEventStatusToString(midi.StatusByte);
 
@@ -62,39 +71,42 @@ public static class Reader
             message += $"0b{b:B8} ";
         }
 
-        Console.WriteLine($"""
-                Status: {statusString}
-                Channel: {midi.StatusByte & 0xF:X1}
-                Message: {message}
-        """);
+        return
+        [
+            $"Status: {statusString}",
+            $"Channel: {midi.StatusByte & 0xF:X1}",
+            $"Message: {message}",
+        ];
     }
 
-    public static void PrintMetaEvent(MetaEvent meta)
+    public static string[] MetaEventToStringArray(MetaEvent meta)
     {
         string typeString = Definitions.MetaEventTypeToString(meta.TypeByte);
         int length = meta.Length;
 
         string message = Encoding.ASCII.GetString(meta.DataBytes);
 
-        Console.WriteLine($"""
-                Type: {typeString}
-                Length: {length}
-                Message: {message}
-        """);
+        return
+        [
+            $"Type: {typeString}",
+            $"Length: {length}",
+            $"Message: {message}",
+        ];
     }
 
-    public static void PrintSysexEvent(SysexEvent sysex)
+    public static string[] SysexEventToStringArray(SysexEvent sysex)
     {
         int length = sysex.Length;
         string message = Encoding.ASCII.GetString(sysex.DataBytes);
 
-        Console.WriteLine($"""
-                Length: {length}
-                Message: {message}
-        """);
+        return
+        [
+            $"Length: {length}",
+            $"Message: {message}"
+        ];
     }
 
-    public static void PrintSummary(MIDIFile midi)
+    public static String[] SummaryToStringArray(MIDIFile midi)
     {
         int format = 0;
         int ntrks = 0;
@@ -150,20 +162,21 @@ public static class Reader
             }
         }
 
-        Console.WriteLine($"""
-        Format: {Definitions.HeaderFormatToString(format)}
-        Ntrks: {ntrks}
-        Division: {Definitions.HeaderDivisionToString(division)}
-        
-        Chunks: {nChunks}
-        └ Headers: {nHeaders}
-        └ Tracks: {nTracks}
-        └ Aliens: {nAliens}
-        
-        Events: {nEvents}
-        └ MIDI: {nMIDI}
-        └ Sysex: {nSysex}
-        └ Meta: {nMeta}
-        """);
+        return
+        [
+            $"Format: {Definitions.HeaderFormatToString(format)}",
+            $"Ntrks: {ntrks}",
+            $"Division: {Definitions.HeaderDivisionToString(division)}",
+            "",
+            $"Chunks: {nChunks}",
+            $"└ Headers: {nHeaders}",
+            $"└ Tracks: {nTracks}",
+            $"└ Aliens: {nAliens}",
+            "",
+            $"Events: {nEvents}",
+            $"└ MIDI: {nMIDI}",
+            $"└ Sysex: {nSysex}",
+            $"└ Meta: {nMeta}",
+        ];
     }
 }
