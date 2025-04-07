@@ -119,7 +119,7 @@ public static class Reader
                 {
                     var ev = trackChunk.Events[j];
 
-                    string eventCount = $"{j} ";
+                    string eventCount = $"{i}-{j} ";
 
                     if (ev.GetType() == typeof(MIDIEvent))
                     {
@@ -161,7 +161,11 @@ public static class Reader
 
     public static string[] MIDIEventToStringArray(MIDIEvent midi)
     {
-        string statusString = Definitions.MIDIEventStatusToString(midi.StatusByte);
+        int statusByte = midi.StatusByte;
+
+        string statusString = Definitions.MIDIEventStatusToString(statusByte);
+
+        string channel = statusByte != -1 ? $"{midi.StatusByte & 0xF:X1}" : "N/A";
 
         string message = "";
         foreach (var b in midi.DataBytes)
@@ -172,7 +176,7 @@ public static class Reader
         return
         [
             $"Status: {statusString}",
-            $"Channel: {midi.StatusByte & 0xF:X1}",
+            $"Channel: {channel}",
             $"Message: {message}",
         ];
     }

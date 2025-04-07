@@ -53,20 +53,18 @@ public static class Definitions
     {
         int statusByte = code >> 4;
 
-        string midiEventString = statusByte switch
+        return statusByte switch
         {
-            0x8 => "Note Off",
-            0x9 => "Note On",
-            0xA => "Polyphonic Key Pressure",
-            0xB => "Control Change",
-            0xC => "Program Change",
-            0xD => "Channel Pressure",
-            0xE => "Pitch Bend Change",
-            -1 => "Running Status",
+            0x8 => $"Note Off (0x{statusByte:X1}n)",
+            0x9 => $"Note On (0x{statusByte:X1}n)",
+            0xA => $"Polyphonic Key Pressure (0x{statusByte:X1}n)",
+            0xB => $"Control Change (0x{statusByte:X1}n)",
+            0xC => $"Program Change (0x{statusByte:X1}n)",
+            0xD => $"Channel Pressure (0x{statusByte:X1}n)",
+            0xE => $"Pitch Bend Change (0x{statusByte:X1}n)",
+            -1 => "Running Status (N/A)",
             _ => throw new ArgumentException($"0x{code:X} is not a MIDI Channel status byte."),
         };
-
-        return midiEventString + $" (0x{statusByte:X1}n)";
     }
 
     public static string MetaEventTypeToString(int code)
