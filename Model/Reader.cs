@@ -161,16 +161,24 @@ public static class Reader
 
     public static string[] MIDIEventToStringArray(MIDIEvent midi)
     {
-        int statusByte = midi.StatusByte;
+        int statusHalfbyte = midi.StatusByte >> 4;
+        bool runningStatus = midi.RunningStatus;
 
-        string statusString = Definitions.MIDIEventStatusToString(statusByte);
+        string statusString = Definitions.MIDIEventStatusToString(statusHalfbyte, runningStatus);
 
-        string channel = statusByte != -1 ? $"{midi.StatusByte & 0xF:X1}" : "N/A";
+        string channel = $"{(midi.StatusByte & 0xF) + 1}";
 
         string message = "";
-        foreach (var b in midi.DataBytes)
+        if (statusHalfbyte == 0x8 || statusHalfbyte == 0x9)
         {
-            message += $"0b{b:B8} ";
+            message += Definitions.MIDINoteToString(midi.DataBytes[0]) + " " + midi.DataBytes[1];
+        }
+        else
+        {
+            foreach (var b in midi.DataBytes)
+            {
+                message += $"0b{b:B8} ";
+            }
         }
 
         return

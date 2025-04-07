@@ -49,22 +49,47 @@ public static class Definitions
         }
     }
 
-    public static string MIDIEventStatusToString(int code)
+    public static string MIDINoteToString(byte note)
     {
-        int statusByte = code >> 4;
-
-        return statusByte switch
+        string noteString = (note % 12) switch
         {
-            0x8 => $"Note Off (0x{statusByte:X1}n)",
-            0x9 => $"Note On (0x{statusByte:X1}n)",
-            0xA => $"Polyphonic Key Pressure (0x{statusByte:X1}n)",
-            0xB => $"Control Change (0x{statusByte:X1}n)",
-            0xC => $"Program Change (0x{statusByte:X1}n)",
-            0xD => $"Channel Pressure (0x{statusByte:X1}n)",
-            0xE => $"Pitch Bend Change (0x{statusByte:X1}n)",
-            -1 => "Running Status (N/A)",
-            _ => throw new ArgumentException($"0x{code:X} is not a MIDI Channel status byte."),
+            0 => "C",
+            1 => "C#",
+            2 => "D",
+            3 => "D#",
+            4 => "E",
+            5 => "F",
+            6 => "F#",
+            7 => "G",
+            8 => "G#",
+            9 => "A",
+            10 => "A#",
+            11 => "B",
+            _ => throw new NotImplementedException()
         };
+
+        return $"{noteString}{note / 12 - 1}";
+    }
+
+    public static string MIDIEventStatusToString(int statusHalfbyte, bool runningStatus = false)
+    {
+        string statusString = "";
+
+        if (runningStatus) statusString += "Running ";
+
+        statusString += statusHalfbyte switch
+        {
+            0x8 => $"Note Off (0x{statusHalfbyte:X1}n)",
+            0x9 => $"Note On (0x{statusHalfbyte:X1}n)",
+            0xA => $"Polyphonic Key Pressure (0x{statusHalfbyte:X1}n)",
+            0xB => $"Control Change (0x{statusHalfbyte:X1}n)",
+            0xC => $"Program Change (0x{statusHalfbyte:X1}n)",
+            0xD => $"Channel Pressure (0x{statusHalfbyte:X1}n)",
+            0xE => $"Pitch Bend Change (0x{statusHalfbyte:X1}n)",
+            _ => throw new ArgumentException($"0x{statusHalfbyte:X1}n is not a recognized MIDI Channel status."),
+        };
+
+        return statusString;
     }
 
     public static string MetaEventTypeToString(int code)
