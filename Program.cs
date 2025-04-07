@@ -10,7 +10,7 @@ class Program
         if (args.Length > 0)
         {
             var midi = MIDIParser.ParseFile(args[0]);
-            Reader.Print(midi);
+            Reader.Read(midi);
         }
     }
 }

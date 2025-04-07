@@ -24,9 +24,9 @@ public static class Definitions
 
         if (format == 0)
             str += "(Single track)";
-        if (format == 1)
+        else if (format == 1)
             str += "(One or more sequential tracks)";
-        if (format == 2)
+        else if (format == 2)
             str += "(One or more independent tracks)";
         else
             str += "(Undefined)";
@@ -36,14 +36,14 @@ public static class Definitions
 
     public static string HeaderDivisionToString(int division)
     {
-        if (division < 0x80)
+        if (division < 0x8000)
         {
             return $"{division} (Ticks per quarter note)";
         }
         else
         {
-            int smpte = (division - 0x80) >> 8;
-            int tpf = division - 0x80 - (smpte << 8);
+            int smpte = (((division - 0x8000) >> 8) & 0x3F) * -1;
+            int tpf = division & 0xFF;
 
             return $"{smpte} / {tpf} (Negative SMPTE / Ticks per frame)";
         }

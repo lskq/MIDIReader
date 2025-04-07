@@ -7,6 +7,85 @@ namespace MIDIReader.Model;
 
 public static class Reader
 {
+    public static void Read(MIDIFile midi)
+    {
+        string[] lines = MIDIToStringArray(midi);
+
+        Console.CursorVisible = false;
+
+        int linePos = 0;
+        int length = lines.Length;
+        bool running = true;
+
+        do
+        {
+            Console.Clear();
+
+            var key = ConsoleKey.None;
+
+            int height = Console.WindowHeight - 1;
+
+            Console.SetCursorPosition(0, 0);
+
+            for (int i = 0; i < height; i++)
+            {
+                if (linePos + i < length)
+                    Console.WriteLine(lines[linePos + i]);
+            }
+
+            while (true)
+            {
+                if (Console.KeyAvailable == true)
+                {
+                    key = Console.ReadKey(true).Key;
+                }
+
+                if (key == ConsoleKey.UpArrow)
+                {
+                    if (linePos > 0) linePos--;
+                    break;
+                }
+                if (key == ConsoleKey.DownArrow)
+                {
+                    if (linePos + height < length) linePos++;
+                    break;
+                }
+                if (key == ConsoleKey.PageUp)
+                {
+                    int pageUp = linePos - height;
+
+                    linePos = pageUp < 0 ? 0 : pageUp;
+                    break;
+                }
+                if (key == ConsoleKey.PageDown)
+                {
+                    int pageDown = linePos + height;
+                    int endOfFile = length - height;
+                    linePos = pageDown > endOfFile ? endOfFile : pageDown;
+                    break;
+                }
+                if (key == ConsoleKey.Home)
+                {
+                    linePos = 0;
+                    break;
+                }
+                if (key == ConsoleKey.End)
+                {
+                    linePos = length - height;
+                    break;
+                }
+                if (key == ConsoleKey.Escape || key == ConsoleKey.Q)
+                {
+                    running = false;
+                    break;
+                }
+            }
+        } while (running);
+
+        Console.Clear();
+        Console.CursorVisible = true;
+    }
+
     public static void Print(MIDIFile midi)
     {
         foreach (var line in MIDIToStringArray(midi))
@@ -15,9 +94,9 @@ public static class Reader
         }
     }
 
-    public static String[] MIDIToStringArray(MIDIFile midi)
+    public static string[] MIDIToStringArray(MIDIFile midi)
     {
-        string[] array = [];
+        string[] array = ["START OF TRANSMISSION", "", .. SummaryToStringArray(midi), ""];
 
         for (int i = 0; i < midi.Chunks.Length; i++)
         {
@@ -25,7 +104,14 @@ public static class Reader
 
             array = [.. array, $"{i} {Definitions.ChunkTypeToString(chunk)}", ""];
 
-            if (chunk.GetType() == typeof(TrackChunk))
+
+            if (chunk.GetType() == typeof(HeaderChunk))
+            {
+                var headerChunk = (HeaderChunk)chunk;
+
+                array = [.. array, .. HeaderChunkToStringArray(headerChunk), ""];
+            }
+            else if (chunk.GetType() == typeof(TrackChunk))
             {
                 var trackChunk = (TrackChunk)chunk;
 
@@ -33,11 +119,11 @@ public static class Reader
                 {
                     var ev = trackChunk.Events[j];
 
-                    string eventCount = $"\tEvent #{j} - ";
+                    string eventCount = $"{j} ";
 
                     if (ev.GetType() == typeof(MIDIEvent))
                     {
-                        array = [.. array, eventCount + "MIDI Channel", .. MIDIEventToStringArray((MIDIEvent)ev)];
+                        array = [.. array, eventCount + "MIDI", .. MIDIEventToStringArray((MIDIEvent)ev)];
                     }
                     else if (ev.GetType() == typeof(MetaEvent))
                     {
@@ -58,7 +144,19 @@ public static class Reader
             }
         }
 
+        array = [.. array, "END OF TRANSMISSION"];
+
         return array;
+    }
+
+    public static string[] HeaderChunkToStringArray(HeaderChunk header)
+    {
+        return
+        [
+            $"Format: {Definitions.HeaderFormatToString(header.Format)}",
+            $"Ntrks: {header.Ntrks}",
+            $"Division: {Definitions.HeaderDivisionToString(header.Division)}"
+        ];
     }
 
     public static string[] MIDIEventToStringArray(MIDIEvent midi)
@@ -106,12 +204,8 @@ public static class Reader
         ];
     }
 
-    public static String[] SummaryToStringArray(MIDIFile midi)
+    public static string[] SummaryToStringArray(MIDIFile midi)
     {
-        int format = 0;
-        int ntrks = 0;
-        int division = 0;
-
         int nChunks = 0;
 
         int nHeaders = 0;
@@ -132,12 +226,6 @@ public static class Reader
             if (type == typeof(HeaderChunk))
             {
                 nHeaders++;
-
-                var header = (HeaderChunk)chunk;
-
-                format = header.Format;
-                ntrks = header.Ntrks;
-                division = header.Division;
             }
             else if (type == typeof(TrackChunk))
             {
@@ -164,9 +252,7 @@ public static class Reader
 
         return
         [
-            $"Format: {Definitions.HeaderFormatToString(format)}",
-            $"Ntrks: {ntrks}",
-            $"Division: {Definitions.HeaderDivisionToString(division)}",
+            "Summary",
             "",
             $"Chunks: {nChunks}",
             $"└ Headers: {nHeaders}",
