@@ -217,7 +217,7 @@ public static class Reader
     public static string[] SysexEventToStringArray(SysexEvent sysex)
     {
         int length = sysex.Length;
-        string message = Encoding.ASCII.GetString(sysex.DataBytes);
+        string message = Definitions.ByteArrayToHexString(sysex.DataBytes);
 
         return
         [
