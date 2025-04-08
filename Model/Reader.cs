@@ -175,10 +175,7 @@ public static class Reader
         }
         else
         {
-            foreach (var b in midi.DataBytes)
-            {
-                message += $"0b{b:B8} ";
-            }
+            message = Definitions.ByteArrayToHexString(midi.DataBytes);
         }
 
         return
@@ -191,10 +188,23 @@ public static class Reader
 
     public static string[] MetaEventToStringArray(MetaEvent meta)
     {
-        string typeString = Definitions.MetaEventTypeToString(meta.TypeByte);
+        int typeByte = meta.TypeByte;
+        byte[] dataBytes = meta.DataBytes;
+
+        string typeString = Definitions.MetaEventTypeToString(typeByte);
         int length = meta.Length;
 
-        string message = Encoding.ASCII.GetString(meta.DataBytes);
+        string message = typeByte switch
+        {
+            0x00 => $"{Definitions.ByteArrayToInt(dataBytes)}",
+            0x20 => $"{Definitions.ByteArrayToInt(dataBytes)}",
+            0x51 => $"{Definitions.ByteArrayToInt(dataBytes)} microseconds per quarter note",
+            0x54 => Definitions.ByteArrayToHexString(dataBytes),
+            0x58 => Definitions.MetaTimeSignatureToString(dataBytes),
+            0x59 => Definitions.MetaKeySignatureToString(dataBytes),
+            0x7F => Definitions.ByteArrayToHexString(dataBytes),
+            _ => Encoding.ASCII.GetString(dataBytes),
+        };
 
         return
         [

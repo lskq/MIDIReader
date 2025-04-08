@@ -116,4 +116,76 @@ public static class Definitions
 
         return metaEventString + $" (0x{code:X2})";
     }
+
+    public static string MetaTimeSignatureToString(byte[] bytes)
+    {
+        if (bytes.Length != 4) throw new ArgumentException($"{bytes}is not a time signature.");
+
+        return $"{bytes[0]}/{Math.Pow(2, bytes[1])} time, {bytes[2]} clocks per click, {bytes[3]} 32nd notes per quarter note";
+    }
+
+    public static string MetaKeySignatureToString(byte[] bytes)
+    {
+        if (bytes.Length != 2) throw new ArgumentException($"{bytes} is not a key signature.");
+
+        sbyte sf = (sbyte)bytes[0];
+
+        string str = "";
+
+        if (sf == 0)
+        {
+            str += "Key of C";
+        }
+        else if (sf < 0)
+        {
+            str += $"{-sf} flat";
+        }
+        else if (sf > 0)
+        {
+            str += $"{sf} sharp";
+        }
+        if (sf > 1 || sf < -1)
+        {
+            str += "s";
+        }
+
+        str += ", ";
+
+        if (bytes[1] == 0)
+        {
+            str += "major key";
+        }
+        else if (bytes[1] == 1)
+        {
+            str += "minor key";
+        }
+        else
+        {
+            str += "undefined key";
+        }
+
+        return str;
+    }
+
+    public static int ByteArrayToInt(byte[] bytes)
+    {
+        int result = 0;
+        for (int i = bytes.Length - 1; i > 0; i--)
+        {
+            result += bytes[i] * 16 * i;
+        }
+
+        return result;
+    }
+
+    public static string ByteArrayToHexString(byte[] bytes)
+    {
+        string str = "0x ";
+        foreach (var b in bytes)
+        {
+            str += $"{b:X2} ";
+        }
+
+        return str.TrimEnd();
+    }
 }
