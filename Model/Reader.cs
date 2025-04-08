@@ -166,7 +166,7 @@ public static class Reader
 
         string statusString = Definitions.MIDIEventStatusToString(statusHalfbyte, runningStatus);
 
-        string channel = $"{(midi.StatusByte & 0xF) + 1}";
+        string channel = $"{midi.StatusByte & 0xF}";
 
         string message = "";
         if (statusHalfbyte == 0x8 || statusHalfbyte == 0x9)
