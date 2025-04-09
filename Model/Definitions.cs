@@ -34,7 +34,7 @@ public static class Definitions
         return str;
     }
 
-    public static string HeaderDivisionToString(int division)
+    public static string SMPTEToString(int division)
     {
         if (division < 0x8000)
         {
@@ -42,7 +42,7 @@ public static class Definitions
         }
         else
         {
-            int smpte = (((division - 0x8000) >> 8) & 0x3F) * -1;
+            int smpte = ((division >> 8) & 0x3F) * -1;
             int tpf = division & 0xFF;
 
             return $"{smpte} / {tpf} (Negative SMPTE / Ticks per frame)";
@@ -165,6 +165,19 @@ public static class Definitions
         }
 
         return str;
+    }
+
+    public static string ByteArrayToSMPTEOffset(byte[] bytes)
+    {
+        if (bytes.Length != 5) throw new ArgumentException($"{bytes} is not an SMPTE offset.");
+
+        string hr = SMPTEToString(bytes[0]);
+        int mn = bytes[1];
+        int se = bytes[2];
+        int fr = bytes[3];
+        int ff = bytes[4];
+
+        return $"{hr}, {mn}:{se}, {fr}/{ff}";
     }
 
     public static int ByteArrayToInt(byte[] bytes)

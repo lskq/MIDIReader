@@ -155,7 +155,7 @@ public static class Reader
         [
             $"Format: {Definitions.HeaderFormatToString(header.Format)}",
             $"Ntrks: {header.Ntrks}",
-            $"Division: {Definitions.HeaderDivisionToString(header.Division)}"
+            $"Division: {Definitions.SMPTEToString(header.Division)}"
         ];
     }
 
@@ -199,7 +199,7 @@ public static class Reader
             0x00 => $"{Definitions.ByteArrayToInt(dataBytes)}",
             0x20 => $"{Definitions.ByteArrayToInt(dataBytes)}",
             0x51 => $"{Definitions.ByteArrayToInt(dataBytes)} microseconds per quarter note",
-            0x54 => Definitions.ByteArrayToHexString(dataBytes),
+            0x54 => Definitions.ByteArrayToSMPTEOffset(dataBytes),
             0x58 => Definitions.MetaTimeSignatureToString(dataBytes),
             0x59 => Definitions.MetaKeySignatureToString(dataBytes),
             0x7F => Definitions.ByteArrayToHexString(dataBytes),
